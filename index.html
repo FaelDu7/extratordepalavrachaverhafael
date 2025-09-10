@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Extrator de Palavras — ffaelwz </title>
+  <style>
+    :root{
+      --bg1:#000000; /* preto */
+      --bg2:#6a0dad; /* roxo neon */
+      --word-color:#ffffff;
+      --font-family: 'Poppins', system-ui, sans-serif;
+      --gap:20px;
+      --font-size:28px;
+    }
+
+    html,body{height:100%;margin:0;font-family:var(--font-family);display:flex;align-items:center;justify-content:center;}
+    body{background:linear-gradient(180deg,var(--bg1),var(--bg2));color:#fff;padding:20px;box-sizing:border-box}
+
+    .app{max-width:1100px;width:90%;margin:0 auto;background:rgba(255,255,255,0.05);border-radius:20px;padding:32px;box-shadow:0 10px 30px rgba(0,0,0,0.7);text-align:center}
+    h1{margin:0 0 20px;font-size:42px;text-align:center;color:#fff;text-shadow:0 0 10px #b84dff, 0 0 20px #b84dff}
+
+    textarea{width:100%;min-height:150px;padding:14px;border-radius:12px;border:1px solid rgba(255,255,255,0.1);background:rgba(0,0,0,0.3);color:#fff;resize:vertical;font-size:18px}
+
+    .controls{display:flex;flex-wrap:wrap;gap:16px;margin-top:20px;justify-content:center}
+    .control{background:rgba(255,255,255,0.05);padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,0.1)}
+    label{font-size:14px;display:block;margin-bottom:6px;color:#ddd}
+    input[type="color"],select,input[type="number"],input[type="range"]{display:block;margin:0 auto}
+    button{background:linear-gradient(90deg,#b84dff,#6a0dad);border:none;padding:10px 16px;border-radius:12px;color:#fff;cursor:pointer;font-size:16px;transition:transform .2s}
+    button:hover{transform:scale(1.05)}
+    button.ghost{background:transparent;border:1px solid rgba(255,255,255,0.2)}
+
+    #output{margin-top:24px;display:flex;flex-wrap:wrap;gap:var(--gap);justify-content:center}
+    .chip{padding:14px 20px;border-radius:16px;background:rgba(255,255,255,0.08);color:var(--word-color);font-size:var(--font-size);display:inline-block;text-shadow:0 0 6px #b84dff, 0 0 12px #b84dff, 0 0 24px #b84dff;box-shadow:0 0 10px rgba(184,77,255,0.5)}
+
+    .footer{margin-top:18px;font-size:14px;color:#ccc;text-align:center}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>Extrator de Palavras — Interativo</h1>
+
+    <div>
+      <label for="inputText">Cole aqui o texto (ou perguntas) para extrair palavras:</label>
+      <textarea id="inputText" placeholder="Cole o texto da sua atividade escolar...">Exemplo: Apple, banana; laranja? escola! jogo futebol música</textarea>
+    </div>
+
+    <div class="controls">
+      <div class="control">
+        <label>Gradient fundo — cor 1 (top)</label>
+        <input type="color" id="bg1" value="#000000">
+      </div>
+      <div class="control">
+        <label>Gradient fundo — cor 2 (bottom)</label>
+        <input type="color" id="bg2" value="#6a0dad">
+      </div>
+
+      <div class="control">
+        <label>Cor das palavras</label>
+        <input type="color" id="wordColor" value="#ffffff">
+      </div>
+
+      <div class="control">
+        <label>Fonte</label>
+        <select id="fontSel">
+          <option value="Poppins, system-ui, sans-serif">Poppins (moderno)</option>
+          <option value="Arial, system-ui, sans-serif">Arial (clássica)</option>
+          <option value="'Comic Sans MS', 'Comic Sans'">Comic Sans (mais jovem)</option>
+          <option value="'Courier New', monospace">Monospace</option>
+          <option value="'Times New Roman', serif">Times New Roman</option>
+        </select>
+      </div>
+
+      <div class="control">
+        <label>Tamanho da fonte (px)</label>
+        <input type="range" id="fontSize" min="20" max="60" value="28">
+      </div>
+
+      <div class="control">
+        <label>Espaçamento entre "chips" (px)</label>
+        <input type="range" id="gap" min="10" max="60" value="20">
+      </div>
+
+      <div class="control">
+        <label>Filtrar — comprimento mínimo</label>
+        <input type="number" id="minLen" min="1" value="1" style="width:70px">
+      </div>
+
+      <div class="control">
+        <label>Tom de pergunta (transformação)</label>
+        <select id="tone">
+          <option value="none">Nenhuma — só palavras</option>
+          <option value="jovem">Jovem / descontraído</option>
+          <option value="formal">Formal / direto</option>
+          <option value="divertido">Divertido / curtas</option>
+        </select>
+      </div>
+
+      <div class="control" style="align-self:center">
+        <label class="small">Ações</label>
+        <div style="display:flex;gap:8px;justify-content:center">
+          <button id="extractBtn">Extrair</button>
+          <button id="shuffleBtn" class="ghost">Embaralhar</button>
+          <button id="toQuestionsBtn" class="ghost">Converter em perguntas</button>
+        </div>
+      </div>
+
+      <div class="control" style="align-self:center">
+        <label class="small">Exportar / Copiar</label>
+        <div style="display:flex;gap:8px;justify-content:center">
+          <button id="copyBtn" class="ghost">Copiar</button>
+          <button id="exportBtn" class="ghost">Exportar .txt</button>
+        </div>
+      </div>
+
+    </div>
+
+    <div id="output" aria-live="polite"></div>
+
+    <div class="footer">Dica: use o controle "Tom de pergunta" para gerar perguntas com ar mais jovem (ex.: "Já usou [palavra]?").</div>
+  </div>
+
+<script>
+  const input = document.getElementById('inputText');
+  const output = document.getElementById('output');
+  const bg1 = document.getElementById('bg1');
+  const bg2 = document.getElementById('bg2');
+  const wordColor = document.getElementById('wordColor');
+  const fontSel = document.getElementById('fontSel');
+  const fontSize = document.getElementById('fontSize');
+  const gap = document.getElementById('gap');
+  const minLen = document.getElementById('minLen');
+  const tone = document.getElementById('tone');
+
+  function applyStyles(){
+    document.documentElement.style.setProperty('--bg1', bg1.value);
+    document.documentElement.style.setProperty('--bg2', bg2.value);
+    document.documentElement.style.setProperty('--word-color', wordColor.value);
+    document.documentElement.style.setProperty('--font-family', fontSel.value);
+    document.documentElement.style.setProperty('--gap', gap.value + 'px');
+    document.documentElement.style.setProperty('--font-size', fontSize.value + 'px');
+  }
+
+  bg1.addEventListener('input',applyStyles);
+  bg2.addEventListener('input',applyStyles);
+  wordColor.addEventListener('input',applyStyles);
+  fontSel.addEventListener('change',applyStyles);
+  fontSize.addEventListener('input',applyStyles);
+  gap.addEventListener('input',applyStyles);
+
+  function tokenize(text){
+    const raw = text.split(/[^\p{L}\p{N}'’]+/u).filter(Boolean);
+    return raw;
+  }
+
+  function uniquePreserve(arr){
+    const seen = new Set();
+    return arr.filter(x=>{
+      const key = x.toLowerCase();
+      if(seen.has(key)) return false; seen.add(key); return true;
+    });
+  }
+
+  function renderList(list){
+    output.innerHTML = '';
+    list.forEach(item=>{
+      const div = document.createElement('div');
+      div.className = 'chip';
+      div.textContent = item;
+      output.appendChild(div);
+    });
+  }
+
+  function extract(){
+    applyStyles();
+    const text = input.value || '';
+    const tokens = tokenize(text).filter(w => w.length >= Number(minLen.value));
+    const uniq = uniquePreserve(tokens);
+    if(tone.value === 'none'){
+      renderList(uniq);
+      return uniq;
+    }
+    const transformed = uniq.map(w => transformWordToQuestion(w,tone.value));
+    renderList(transformed);
+    return transformed;
+  }
+
+  function transformWordToQuestion(word,style){
+    const w = word.trim();
+    if(style === 'jovem'){
+      const patterns = [
+        `Já curtiu ${w}?`,
+        `Tu já usou ${w}?`,
+        `E aí, ${w} — top ou flop?`,
+        `Quem aí gosta de ${w}?`
+      ];
+      return patterns[Math.floor(Math.random()*patterns.length)];
+    }
+    if(style === 'formal'){
+      return `Qual a sua opinião sobre ${w}?`;
+    }
+    if(style === 'divertido'){
+      const patterns = [
+        `Se ${w} fosse música, qual seria?`,
+        `Escolha: ${w} ou nada?`,
+        `Conta aí algo sobre ${w}`
+      ];
+      return patterns[Math.floor(Math.random()*patterns.length)];
+    }
+    return w;
+  }
+
+  document.getElementById('extractBtn').addEventListener('click', ()=>{ extract(); });
+  document.getElementById('shuffleBtn').addEventListener('click', ()=>{
+    const chips = Array.from(output.children).map(c=>c.textContent);
+    for(let i=chips.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[chips[i],chips[j]]=[chips[j],chips[i]]}
+    renderList(chips);
+  });
+
+  document.getElementById('toQuestionsBtn').addEventListener('click', ()=>{
+    const text = input.value || '';
+    const tokens = tokenize(text).filter(w => w.length >= Number(minLen.value));
+    const uniq = uniquePreserve(tokens);
+    const transformed = uniq.map(w => transformWordToQuestion(w,tone.value==='none'? 'jovem': tone.value));
+    renderList(transformed);
+  });
+
+  document.getElementById('copyBtn').addEventListener('click', ()=>{
+    const text = Array.from(output.children).map(c=>c.textContent).join('\n');
+    navigator.clipboard.writeText(text).then(()=>{
+      alert('Copiado para a área de transferência!');
+    }).catch(()=>alert('Não foi possível copiar — use Ctrl+C.'));
+  });
+
+  document.getElementById('exportBtn').addEventListener('click', ()=>{
+    const text = Array.from(output.children).map(c=>c.textContent).join('\n');
+    const blob = new Blob([text],'text/plain;charset=utf-8');
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'palavras_extraidas.txt';
+    document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  });
+
+  applyStyles();
+  extract();
+</script>
+</body>
+</html>
